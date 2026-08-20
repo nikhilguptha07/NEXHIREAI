@@ -27,7 +27,7 @@ public abstract class BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @jakarta.persistence.Convert(converter = ai.nexhire.config.ResilientUuidConverter.class)
     @Column(name = "ID", nullable = false, updatable = false, length = 36)
     private UUID id;
 

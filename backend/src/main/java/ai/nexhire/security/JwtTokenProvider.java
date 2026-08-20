@@ -127,7 +127,7 @@ public class JwtTokenProvider {
 
     public UUID getUserIdFromToken(String token) {
         String userIdStr = getClaims(token).get("userId", String.class);
-        return UUID.fromString(userIdStr);
+        return ai.nexhire.config.ResilientUuidConverter.parse(userIdStr);
     }
 
     @SuppressWarnings("unchecked")
