@@ -5,6 +5,8 @@ import ai.nexhire.dto.ForgotPasswordRequestDto;
 import ai.nexhire.dto.LoginRequestDto;
 import ai.nexhire.dto.LoginResponseDto;
 import ai.nexhire.dto.MessageResponseDto;
+import ai.nexhire.dto.MfaSetupResponseDto;
+import ai.nexhire.dto.MfaVerifyRequestDto;
 import ai.nexhire.dto.RefreshTokenRequestDto;
 import ai.nexhire.dto.RegisterRequestDto;
 import ai.nexhire.dto.ResetPasswordRequestDto;
@@ -20,6 +22,7 @@ import ai.nexhire.repository.PasswordResetTokenRepository;
 import ai.nexhire.repository.UserRepository;
 import ai.nexhire.security.Argon2PasswordEncoderWrapper;
 import ai.nexhire.security.JwtTokenProvider;
+import ai.nexhire.security.TotpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,6 +47,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisService redisService;
     private final UserMapper userMapper;
+    private final TotpUtil totpUtil;
 
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
@@ -54,13 +58,15 @@ public class AuthService {
             Argon2PasswordEncoderWrapper passwordEncoder,
             JwtTokenProvider jwtTokenProvider,
             RedisService redisService,
-            UserMapper userMapper) {
+            UserMapper userMapper,
+            TotpUtil totpUtil) {
         this.userRepository = userRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.redisService = redisService;
         this.userMapper = userMapper;
+        this.totpUtil = totpUtil;
     }
 
     @Transactional
@@ -116,6 +122,9 @@ public class AuthService {
         if (user.isMfaEnabled()) {
             if (!StringUtils.hasText(request.getMfaCode())) {
                 throw ApiException.unauthorized(ErrorCode.AUTH_MFA_REQUIRED, "Multi-factor authentication code required.");
+            }
+            if (!totpUtil.verifyCode(user.getMfaSecret(), request.getMfaCode())) {
+                throw ApiException.unauthorized(ErrorCode.AUTH_INVALID_CREDENTIALS, "Invalid multi-factor authentication code.");
             }
         }
 
@@ -222,6 +231,85 @@ public class AuthService {
         return userMapper.toDto(user);
     }
 
+    public MfaSetupResponseDto setupMfa(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> ApiException.notFound(ErrorCode.RES_NOT_FOUND, "User not found."));
+
+        String secret = totpUtil.generateSecret();
+        String qrCodeUri = totpUtil.getQrCodeUri(secret, user.getEmail(), "NEXHIRE AI");
+
+        return MfaSetupResponseDto.builder()
+                .secret(secret)
+                .qrCodeUri(qrCodeUri)
+                .manualEntryKey(secret)
+                .build();
+    }
+
+    @Transactional
+    public MessageResponseDto enableMfa(String email, MfaVerifyRequestDto request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> ApiException.notFound(ErrorCode.RES_NOT_FOUND, "User not found."));
+
+        if (!StringUtils.hasText(request.getSecret()) || !StringUtils.hasText(request.getCode())) {
+            throw ApiException.badRequest(ErrorCode.VAL_INVALID_PARAMETER, "Secret and verification code are required.");
+        }
+
+        if (!totpUtil.verifyCode(request.getSecret(), request.getCode())) {
+            throw ApiException.badRequest(ErrorCode.VAL_INVALID_PARAMETER, "Invalid MFA verification code.");
+        }
+
+        user.setMfaEnabled(true);
+        user.setMfaSecret(request.getSecret());
+        userRepository.save(user);
+
+        log.info("MFA enabled successfully for user ID: {}", user.getId());
+        return MessageResponseDto.of("Two-factor authentication enabled successfully.");
+    }
+
+    @Transactional
+    public MessageResponseDto disableMfa(String email, MfaVerifyRequestDto request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> ApiException.notFound(ErrorCode.RES_NOT_FOUND, "User not found."));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            throw ApiException.unauthorized(ErrorCode.AUTH_INVALID_CREDENTIALS, "Incorrect password.");
+        }
+
+        user.setMfaEnabled(false);
+        user.setMfaSecret(null);
+        userRepository.save(user);
+
+        log.info("MFA disabled successfully for user ID: {}", user.getId());
+        return MessageResponseDto.of("Two-factor authentication disabled successfully.");
+    }
+
+    @Transactional
+    public LoginResponseDto verifyMfaLogin(MfaVerifyRequestDto request) {
+        if (!StringUtils.hasText(request.getEmail()) || !StringUtils.hasText(request.getCode())) {
+            throw ApiException.badRequest(ErrorCode.VAL_INVALID_PARAMETER, "Email and verification code are required.");
+        }
+
+        User user = userRepository.findByEmail(request.getEmail().toLowerCase().trim())
+                .orElseThrow(() -> ApiException.unauthorized(ErrorCode.AUTH_INVALID_CREDENTIALS, "Invalid credentials."));
+
+        if (!user.isMfaEnabled() || !StringUtils.hasText(user.getMfaSecret())) {
+            throw ApiException.badRequest(ErrorCode.VAL_INVALID_PARAMETER, "MFA is not enabled for this account.");
+        }
+
+        if (!totpUtil.verifyCode(user.getMfaSecret(), request.getCode())) {
+            throw ApiException.unauthorized(ErrorCode.AUTH_INVALID_CREDENTIALS, "Invalid multi-factor authentication code.");
+        }
+
+        user.setLastLoginAt(Instant.now());
+        userRepository.save(user);
+
+        AuthTokensDto tokens = jwtTokenProvider.generateTokens(user.getId(), user.getEmail(), user.getRoles());
+        return LoginResponseDto.builder()
+                .user(userMapper.toDto(user))
+                .tokens(tokens)
+                .build();
+    }
+
     @Transactional
     public User processOAuthPostLogin(String email, String firstName, String lastName, String avatarUrl, String provider) {
         String cleanEmail = email.toLowerCase().trim();
@@ -258,4 +346,3 @@ public class AuthService {
                 });
     }
 }
-

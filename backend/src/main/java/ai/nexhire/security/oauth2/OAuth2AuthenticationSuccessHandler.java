@@ -25,13 +25,18 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private final AuthService authService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
-    public OAuth2AuthenticationSuccessHandler(AuthService authService, JwtTokenProvider jwtTokenProvider) {
+    public OAuth2AuthenticationSuccessHandler(
+            AuthService authService,
+            JwtTokenProvider jwtTokenProvider,
+            HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository) {
         this.authService = authService;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.httpCookieOAuth2AuthorizationRequestRepository = httpCookieOAuth2AuthorizationRequestRepository;
     }
 
     @Override
@@ -65,6 +70,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         User user = authService.processOAuthPostLogin(email, firstName, lastName, avatarUrl, "google");
         AuthTokensDto tokens = jwtTokenProvider.generateTokens(user.getId(), user.getEmail(), user.getRoles());
 
+        clearAuthenticationAttributes(request, response);
+
         String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl)
                 .path("/auth/callback/google")
                 .queryParam("token", tokens.getAccessToken())
@@ -73,5 +80,10 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         log.info("OAuth2 login successful. Redirecting user to frontend: {}", targetUrl);
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
+    }
+
+    protected void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {
+        super.clearAuthenticationAttributes(request);
+        httpCookieOAuth2AuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
     }
 }

@@ -18,8 +18,15 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
 
     private static final Logger log = LoggerFactory.getLogger(OAuth2AuthenticationFailureHandler.class);
 
+    private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
+
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
+
+    public OAuth2AuthenticationFailureHandler(
+            HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository) {
+        this.httpCookieOAuth2AuthorizationRequestRepository = httpCookieOAuth2AuthorizationRequestRepository;
+    }
 
     @Override
     public void onAuthenticationFailure(
@@ -28,6 +35,7 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
             AuthenticationException exception) throws IOException, ServletException {
 
         log.error("OAuth2 authentication failure: {}", exception.getMessage());
+        httpCookieOAuth2AuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
 
         String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl)
                 .path("/login")

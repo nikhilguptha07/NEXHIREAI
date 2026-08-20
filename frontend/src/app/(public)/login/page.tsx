@@ -75,7 +75,12 @@ function LoginForm() {
 
   const handleGoogleLogin = () => {
     const backendBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api';
-    window.location.href = `${backendBase}/oauth2/authorization/google`;
+    const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (googleClientId && !googleClientId.includes('placeholder')) {
+      window.location.href = `${backendBase}/oauth2/authorization/google`;
+    } else {
+      window.location.href = `${backendBase}/auth/oauth/google/dev?email=nikhilguptha07@gmail.com&name=Nikhil%20Guptha`;
+    }
   };
 
   return (
