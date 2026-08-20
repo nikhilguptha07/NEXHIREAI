@@ -5,7 +5,7 @@ import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/sonner';
 import { SmoothScrollProvider } from '@/components/landing/SmoothScrollProvider';
 import { APP_NAME } from '@/lib/constants';
-import '@/styles/globals.css';
+import '../styles/globals.css';
 
 const inter = Inter({
   subsets: ['latin'],
