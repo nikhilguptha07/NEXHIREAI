@@ -1,0 +1,33 @@
+# ═══════════════════════════════════════════════════════════════════════════
+#  NEXHIRE AI — Test profile
+#  Uses Testcontainers Oracle XE for integration tests.
+# ═══════════════════════════════════════════════════════════════════════════
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  # Datasource is overridden by Testcontainers at runtime.
+  datasource:
+    url: jdbc:oracle:thin:@//localhost:1521/FREEPDB1
+    username: NEXHIRE_TEST
+    password: test
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+nexhire:
+  security:
+    jwt:
+      secret: test-secret-test-secret-test-secret-test-secret-32-bytes-ok
+      access-token-ttl-minutes: 5
+      refresh-token-ttl-days: 1
+  rate-limit:
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    ai.nexhire: DEBUG
+    org.springframework.security: WARN

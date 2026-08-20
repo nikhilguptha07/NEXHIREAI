@@ -1,0 +1,18 @@
+-- =============================================================================
+-- NEXHIRE AI Database Schema Migration: V02__password_reset_and_verification.sql
+-- Optimizes indexes, foreign key constraints, and cascade operations for
+-- PASSWORD_RESET_TOKENS and EMAIL_VERIFICATION_TOKENS on Oracle DB / standard SQL
+-- =============================================================================
+
+-- 1. PASSWORD_RESET_TOKENS Indexes & Checks
+CREATE UNIQUE INDEX UX_PASS_RESET_TOKEN ON PASSWORD_RESET_TOKENS(TOKEN);
+CREATE INDEX IX_PASS_RESET_USER_ID ON PASSWORD_RESET_TOKENS(USER_ID);
+CREATE INDEX IX_PASS_RESET_EXP_USED ON PASSWORD_RESET_TOKENS(EXPIRES_AT, USED);
+
+-- 2. EMAIL_VERIFICATION_TOKENS Indexes & Checks
+CREATE UNIQUE INDEX UX_EMAIL_VERIF_TOKEN ON EMAIL_VERIFICATION_TOKENS(TOKEN);
+CREATE INDEX IX_EMAIL_VERIF_USER_ID ON EMAIL_VERIFICATION_TOKENS(USER_ID);
+CREATE INDEX IX_EMAIL_VERIF_EXP_VER ON EMAIL_VERIFICATION_TOKENS(EXPIRES_AT, VERIFIED);
+
+-- 3. USERS Email Verification Status Index
+CREATE INDEX IX_USERS_EMAIL_VERIFIED ON USERS(EMAIL, EMAIL_VERIFIED_AT);

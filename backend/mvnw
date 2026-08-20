@@ -1,0 +1,37 @@
+#!/bin/sh
+# ----------------------------------------------------------------------------
+# Maven Start Up Batch script
+#
+# This is the standard Apache Maven wrapper for Unix systems.
+# It bootstraps a local Maven install if `.mvn/wrapper/maven-wrapper.jar`
+# is not present, then forwards all arguments to `mvn`.
+# ----------------------------------------------------------------------------
+set -e
+
+BASEDIR=$(cd "$(dirname "$0")" && pwd)
+WRAPPER_JAR="$BASEDIR/.mvn/wrapper/maven-wrapper.jar"
+WRAPPER_PROPS="$BASEDIR/.mvn/wrapper/maven-wrapper.properties"
+
+if [ ! -f "$WRAPPER_JAR" ]; then
+  if [ ! -f "$WRAPPER_PROPS" ]; then
+    echo "ERROR: Could not find $WRAPPER_PROPS" >&2
+    exit 1
+  fi
+  # Read wrapperUrl (second non-comment line)
+  WRAPPER_URL=$(grep '^wrapperUrl=' "$WRAPPER_PROPS" | cut -d'=' -f2-)
+  if [ -z "$WRAPPER_URL" ]; then
+    echo "ERROR: wrapperUrl not defined in $WRAPPER_PROPS" >&2
+    exit 1
+  fi
+  echo "Downloading Maven Wrapper from $WRAPPER_URL ..."
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL -o "$WRAPPER_JAR" "$WRAPPER_URL"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q -O "$WRAPPER_JAR" "$WRAPPER_URL"
+  else
+    echo "ERROR: Need curl or wget to bootstrap Maven wrapper" >&2
+    exit 1
+  fi
+fi
+
+exec java $MAVEN_OPTS -jar "$WRAPPER_JAR" "$@"

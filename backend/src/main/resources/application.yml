@@ -1,0 +1,117 @@
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: nexhire-backend
+
+  profiles:
+    active: dev
+
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false
+
+  datasource:
+    url: ${ORACLE_JDBC_URL:${SPRING_DATASOURCE_URL:jdbc:oracle:thin:@//localhost:1521/XEPDB1}}
+    username: ${ORACLE_USERNAME:${SPRING_DATASOURCE_USERNAME:system}}
+    password: ${ORACLE_PASSWORD:${SPRING_DATASOURCE_PASSWORD:system}}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:oracle.jdbc.OracleDriver}
+    hikari:
+      pool-name: NexhireHikariPool
+      maximum-pool-size: 15
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: ${SPRING_JPA_HIBERNATE_DIALECT:org.hibernate.dialect.OracleDialect}
+        format_sql: true
+        type:
+          preferred_boolean_type: numeric
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:${OAUTH_GOOGLE_CLIENT_ID:google-client-id-placeholder}}
+            client-secret: ${GOOGLE_CLIENT_SECRET:${OAUTH_GOOGLE_CLIENT_SECRET:google-client-secret-placeholder}}
+            scope:
+              - openid
+              - profile
+              - email
+            redirect-uri: ${GOOGLE_REDIRECT_URI:{baseUrl}/login/oauth2/code/{registrationId}}
+
+nexhire:
+  cors:
+    allowed-origins: ${BACKEND_CORS_ALLOWED_ORIGINS:${CORS_ALLOWED_ORIGINS:http://localhost:3000}}
+  security:
+    jwt:
+      secret: ${JWT_SECRET:nexhire-super-secure-production-ready-jwt-secret-key-at-least-64-bytes-long-for-hmac-sha512}
+      access-token-ttl-minutes: ${JWT_ACCESS_TTL_MIN:15}
+      refresh-token-ttl-days: ${JWT_REFRESH_TTL_DAYS:30}
+      issuer: ${JWT_ISSUER:nexhire-ai}
+      audience: ${JWT_AUDIENCE:nexhire-web}
+    argon2:
+      memory-kib: 65536
+      iterations: 3
+      parallelism: 1
+      salt-length-bytes: 16
+      hash-length-bytes: 32
+  rate-limit:
+    enabled: false
+    capacity: 60
+    refill-per-minute: 60
+  storage:
+    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    public-endpoint: ${MINIO_PUBLIC_ENDPOINT:http://localhost:9000}
+    access-key: ${MINIO_ACCESS_KEY:nexhire-app}
+    secret-key: ${MINIO_SECRET_KEY:nexhire-app-secret-key-32-chars-min}
+    region: ${MINIO_REGION:us-east-1}
+    buckets:
+      resumes: ${MINIO_BUCKET_RESUMES:nexhire-resumes}
+      avatars: ${MINIO_BUCKET_AVATARS:nexhire-avatars}
+      exports: ${MINIO_BUCKET_EXPORTS:nexhire-exports}
+
+app:
+  frontend:
+    url: ${NEXT_PUBLIC_APP_URL:${FRONTEND_URL:http://localhost:3000}}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+logging:
+  level:
+    root: INFO
+    ai.nexhire: INFO
+    org.springframework.web: INFO

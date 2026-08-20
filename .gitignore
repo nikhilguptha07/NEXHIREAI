@@ -1,0 +1,67 @@
+# ═══════════════════════════════════════════════════════════════════════════
+#  NEXHIRE AI — Root .gitignore
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ── Secrets & Environment variables ──────────────────────────────────────────
+.env
+.env.*
+!.env.example
+config/env/*.env
+!config/env/*.example.env
+
+# ── Java / Maven ────────────────────────────────────────────────────────────
+target/
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+backend/target/
+.mvn/wrapper/maven-wrapper.jar
+
+# ── Node / Next.js ──────────────────────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+.next/
+frontend/.next/
+out/
+frontend/out/
+build/
+frontend/build/
+.tsbuildinfo
+frontend/tsconfig.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── IDE & Editor files ──────────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# ── Logs & Local Runtime Data ───────────────────────────────────────────────
+logs/
+*.log
+backend/logs/
+backend/data/
+minio-data/
+local-data/
+*.h2.db
+*.db
+
+# ── Temporary & Scratch Files ───────────────────────────────────────────────
+tmp/
+temp/
+scratch/
+.system_generated/
