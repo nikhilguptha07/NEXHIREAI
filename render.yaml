@@ -5,16 +5,16 @@
 # ═══════════════════════════════════════════════════════════════════════════
 
 services:
-  # ── Backend Service (Spring Boot 3.3.4 / Java 21) ──────────────────────────
+  # ── Backend Service (Spring Boot 3.3.4 / Java 21 / Docker) ──────────────────
   - type: web
     name: nexhire-backend
-    runtime: java
+    runtime: docker
     region: oregon
     plan: standard
     branch: main
     rootDir: backend
-    buildCommand: mvn clean package -DskipTests
-    startCommand: java -jar target/nexhire-backend.jar
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
