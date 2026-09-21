@@ -34,7 +34,6 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect: ${SPRING_JPA_HIBERNATE_DIALECT:org.hibernate.dialect.OracleDialect}
         format_sql: true
         type:
           preferred_boolean_type: numeric
