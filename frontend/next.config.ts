@@ -11,8 +11,6 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  output: 'standalone',
-  outputFileTracingRoot: path.join(__dirname, '../'),
   // Tuned per Next 15 + Turbopack
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
