@@ -72,8 +72,8 @@ You can deploy using either **Render Blueprints (render.yaml)** or **Manual Serv
 ### Option A: Render Blueprints (Recommended)
 1. In the [Render Dashboard](https://dashboard.render.com), click **New +** ➔ **Blueprint**.
 2. Connect your GitHub repository `nexhire-ai`.
-3. Render will read `render.yaml` and configure both `nexhire-backend` and `nexhire-frontend` automatically.
-4. Fill in the required secret environment variables prompted by Render (see Section 3).
+3. Render will read `render.yaml` and configure `nexhire-frontend` automatically.
+4. Fill in any frontend environment variables prompted by Render (see Section 3).
 
 ---
 
