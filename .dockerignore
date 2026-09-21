@@ -1,0 +1,14 @@
+backend/target/
+backend/.mvn/
+backend/*.cmd
+frontend/
+node_modules/
+.git/
+.gitignore
+.env*
+*.log
+.idea/
+.vscode/
+*.md
+database/
+docs/

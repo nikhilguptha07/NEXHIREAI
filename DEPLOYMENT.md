@@ -87,9 +87,9 @@ You can deploy using either **Render Blueprints (render.yaml)** or **Manual Serv
    - **Region**: Oregon (or your preferred region)
    - **Branch**: `main`
    - **Root Directory**: `backend`
-   - **Runtime**: `Java` (Java 21)
-   - **Build Command**: `mvn clean package -DskipTests`
-   - **Start Command**: `java -jar target/nexhire-backend.jar`
+   - **Runtime**: `Docker` (or `Java` 21)
+   - **Root Directory**: `backend` (or leave empty if using root Dockerfile)
+   - **Dockerfile Path**: `Dockerfile`
    - **Auto-Deploy**: `Yes`
    - **Health Check Path**: `/api/health`
 4. Add the Backend Environment Variables listed in Section 3.
