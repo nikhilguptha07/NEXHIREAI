@@ -37,7 +37,19 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
         log.error("OAuth2 authentication failure: {}", exception.getMessage());
         httpCookieOAuth2AuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
 
-        String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl)
+        String base = frontendUrl;
+        if (base.contains("localhost") || base.contains("127.0.0.1")) {
+            String origin = request.getHeader("Origin");
+            if (origin == null || origin.isBlank()) origin = request.getHeader("Referer");
+            if (origin != null && !origin.isBlank()) {
+                try {
+                    java.net.URI uri = java.net.URI.create(origin);
+                    base = uri.getScheme() + "://" + uri.getAuthority();
+                } catch (Exception ignored) {}
+            }
+        }
+
+        String targetUrl = UriComponentsBuilder.fromUriString(base)
                 .path("/login")
                 .queryParam("error", "oauth2_failed")
                 .queryParam("message", exception.getLocalizedMessage())

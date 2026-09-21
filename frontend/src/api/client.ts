@@ -114,8 +114,16 @@ const config: AxiosRequestConfig = {
 
 export const api: AxiosInstance = axios.create(config);
 
-// ── Request interceptor: attach bearer ─────────────────────────────────────
+// ── Request interceptor: attach bearer & ensure proper baseURL ──────────────
 api.interceptors.request.use((req: InternalAxiosRequestConfig) => {
+  if (
+    typeof window !== 'undefined' &&
+    (!req.baseURL || req.baseURL.includes('localhost:8080')) &&
+    !window.location.hostname.includes('localhost') &&
+    !window.location.hostname.includes('127.0.0.1')
+  ) {
+    req.baseURL = 'https://nexhireai-1.onrender.com/api';
+  }
   const token = tokenStore.access;
   if (token && req.headers) {
     req.headers.Authorization = `Bearer ${token}`;

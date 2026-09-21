@@ -72,7 +72,19 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         clearAuthenticationAttributes(request, response);
 
-        String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl)
+        String base = frontendUrl;
+        if (base.contains("localhost") || base.contains("127.0.0.1")) {
+            String origin = request.getHeader("Origin");
+            if (origin == null || origin.isBlank()) origin = request.getHeader("Referer");
+            if (origin != null && !origin.isBlank()) {
+                try {
+                    java.net.URI uri = java.net.URI.create(origin);
+                    base = uri.getScheme() + "://" + uri.getAuthority();
+                } catch (Exception ignored) {}
+            }
+        }
+
+        String targetUrl = UriComponentsBuilder.fromUriString(base)
                 .path("/auth/callback/google")
                 .queryParam("token", tokens.getAccessToken())
                 .queryParam("refreshToken", tokens.getRefreshToken())

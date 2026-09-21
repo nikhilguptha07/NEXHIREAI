@@ -99,12 +99,16 @@ export default function RegisterPage() {
   };
 
   const handleGoogleLogin = () => {
-    const backendBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api';
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const isLocal = typeof window !== 'undefined' && (window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1'));
+    const backendBase =
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      (!isLocal ? 'https://nexhireai-1.onrender.com/api' : 'http://localhost:8080/api');
     const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (googleClientId && !googleClientId.includes('placeholder')) {
       window.location.href = `${backendBase}/oauth2/authorization/google`;
     } else {
-      window.location.href = `${backendBase}/auth/oauth/google/dev?email=nikhilguptha07@gmail.com&name=Nikhil%20Guptha`;
+      window.location.href = `${backendBase}/auth/oauth/google/dev?email=nikhilguptha07@gmail.com&name=Nikhil%20Guptha&redirect_uri=${encodeURIComponent(origin)}`;
     }
   };
 

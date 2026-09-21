@@ -2,10 +2,29 @@
  * NEXHIRE AI — App-wide constants
  */
 
+const getAppUrl = (): string => {
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL;
+  }
+  if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+    return window.location.origin;
+  }
+  return 'http://localhost:3000';
+};
+
+const getApiBaseUrl = (): string => {
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  }
+  if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+    return 'https://nexhireai-1.onrender.com/api';
+  }
+  return 'http://localhost:8080/api';
+};
+
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? 'NEXHIRE AI';
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080/api';
+export const APP_URL = getAppUrl();
+export const API_BASE_URL = getApiBaseUrl();
 
 export const AUTH_ROUTES = ['/login', '/register', '/forgot-password'] as const;
 export const PUBLIC_ROUTES = ['/', ...AUTH_ROUTES] as const;

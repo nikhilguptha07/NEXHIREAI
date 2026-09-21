@@ -120,13 +120,32 @@ public class AuthController {
     public void devGoogleLogin(
             @RequestParam(value = "email", defaultValue = "nikhilguptha07@gmail.com") String email,
             @RequestParam(value = "name", defaultValue = "Nikhil Guptha") String name,
+            @RequestParam(value = "redirect_uri", required = false) String redirectUri,
+            jakarta.servlet.http.HttpServletRequest request,
             HttpServletResponse response) throws IOException {
         String[] parts = name.split("\\s+", 2);
         String firstName = parts[0];
         String lastName = parts.length > 1 ? parts[1] : "User";
         User user = authService.processOAuthPostLogin(email, firstName, lastName, null, "google");
         AuthTokensDto tokens = jwtTokenProvider.generateTokens(user.getId(), user.getEmail(), user.getRoles());
-        String targetUrl = frontendUrl + "/auth/callback/google?token=" + tokens.getAccessToken() + "&refreshToken=" + tokens.getRefreshToken();
+
+        String baseUrl = frontendUrl;
+        if (redirectUri != null && !redirectUri.isBlank() && !redirectUri.equals("null")) {
+            baseUrl = redirectUri.replaceAll("/+$", "");
+        } else {
+            String origin = request.getHeader("Origin");
+            if (origin == null || origin.isBlank()) {
+                origin = request.getHeader("Referer");
+            }
+            if (origin != null && !origin.isBlank()) {
+                try {
+                    java.net.URI uri = java.net.URI.create(origin);
+                    baseUrl = uri.getScheme() + "://" + uri.getAuthority();
+                } catch (Exception ignored) {}
+            }
+        }
+
+        String targetUrl = baseUrl + "/auth/callback/google?token=" + tokens.getAccessToken() + "&refreshToken=" + tokens.getRefreshToken();
         response.sendRedirect(targetUrl);
     }
 }
