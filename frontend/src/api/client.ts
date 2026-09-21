@@ -103,7 +103,7 @@ function normalizeError(err: AxiosError<unknown>): ApiError {
 
 const config: AxiosRequestConfig = {
   baseURL: API_BASE_URL,
-  timeout: 30_000,
+  timeout: 60_000,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',

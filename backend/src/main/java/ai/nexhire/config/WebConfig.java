@@ -31,6 +31,7 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addMapping("/**")
                 .allowedOrigins(origins)
+                .allowedOriginPatterns("https://*.onrender.com", "http://localhost:*", "http://127.0.0.1:*")
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .exposedHeaders("Authorization", "X-Request-Id", "X-RateLimit-Remaining")

@@ -1,5 +1,6 @@
 package ai.nexhire.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -13,6 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RegisterRequestDto {
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
@@ -29,6 +31,8 @@ public class RegisterRequestDto {
     private String lastName;
 
     private String companyName;
+
+    private String role;
 
     @AssertTrue(message = "Terms and conditions must be accepted")
     private boolean acceptTerms;

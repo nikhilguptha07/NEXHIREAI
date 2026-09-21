@@ -19,6 +19,13 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -31,6 +38,7 @@ public class SecurityConfig {
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
     private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
+    private final NexhireProperties properties;
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
@@ -38,13 +46,15 @@ public class SecurityConfig {
             CustomOAuth2UserService customOAuth2UserService,
             OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler,
             OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler,
-            HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository) {
+            HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository,
+            NexhireProperties properties) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.rateLimitingFilter = rateLimitingFilter;
         this.customOAuth2UserService = customOAuth2UserService;
         this.oAuth2AuthenticationSuccessHandler = oAuth2AuthenticationSuccessHandler;
         this.oAuth2AuthenticationFailureHandler = oAuth2AuthenticationFailureHandler;
         this.httpCookieOAuth2AuthorizationRequestRepository = httpCookieOAuth2AuthorizationRequestRepository;
+        this.properties = properties;
     }
 
     @Bean
@@ -53,9 +63,39 @@ public class SecurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        List<String> origins = new ArrayList<>();
+        if (properties.cors() != null && properties.cors().origins() != null) {
+            origins.addAll(Arrays.asList(properties.cors().origins()));
+        }
+        if (!origins.contains("https://nexhireai-frontend.onrender.com")) {
+            origins.add("https://nexhireai-frontend.onrender.com");
+        }
+        if (!origins.contains("https://nexhireai-2.onrender.com")) {
+            origins.add("https://nexhireai-2.onrender.com");
+        }
+        if (!origins.contains("http://localhost:3000")) {
+            origins.add("http://localhost:3000");
+        }
+
+        configuration.setAllowedOrigins(origins);
+        configuration.setAllowedOriginPatterns(List.of("https://*.onrender.com", "http://localhost:*", "http://127.0.0.1:*"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization", "X-Request-Id", "X-RateLimit-Remaining"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exceptions -> exceptions
